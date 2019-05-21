@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingDeque;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -25,11 +25,11 @@ public class ChatRoomServer extends ServerSocket {
     private static final String VIEW_USER = "viewUser";
 
 
-    private static List<String>userList = new CopyOnWriteArrayList<>();
+    private static List<String> userList = new CopyOnWriteArrayList<>();
     /**
      * 服务器已启用线程的集合
      */
-    private static List<Task>threadList = new ArrayList<>();
+    private static List<Task> threadList = new ArrayList<>();
 
     /**
      * 存放消息的队列
@@ -81,16 +81,66 @@ public class ChatRoomServer extends ServerSocket {
 
             try {
                 this.buff = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-                this.writer = new OutputStreamWriter(socket.getOutputStream(),"UTF-8");
+                this.writer = new OutputStreamWriter(socket.getOutputStream(), "UTF-8");
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            userList.add(userName);
+            threadList.add(this);
+            pushMsg("【" + this.userName + " 进入了聊天室。】");
+            System.out.println("From Client[port: " + socket.getPort() + "] " + this.userName + " 进入了聊天室");
 
+        }
+
+        /**
+         * 吧要发送的存入消息队列
+         * @param msg
+         */
+        private void pushMsg(String msg) {
+
+            try {
+                msgQueue.put(msg);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        /**
+         * 发送消息
+         * @param msg
+         */
+        private void sendMsg(String msg){
+
+            try {
+                writer.write(msg);
+                writer.write("\015\012");
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private String onlineUsers(){
+            StringBuffer sbf = new StringBuffer();
+            sbf.append("===========在线成员列表(").append(userList.size()).append(")============\015\012");
+            for(int i=0;i<userList.size();i++){
+                sbf.append("[ "+userList.get(i)+" ]\015\012");
+            }
+            sbf.append("==========================");
+            return sbf.toString();
         }
 
         @Override
         public void run() {
+            try {
+                while (true){
 
+                        String msg = buff.readLine();
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
